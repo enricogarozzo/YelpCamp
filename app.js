@@ -3,15 +3,13 @@ if(process.env.NODE_ENV !== "production"){
 }
 
 
-console.log(process.env.SECRET);
-
 const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
 const ejsMate = require ('ejs-mate');
 const session = require('express-session');
 const sanitizeV5 = require('./utils/mongoSanitizeV5.js');
-const ExpressError = require('./utils/ExpressError');
+const ExpressError = require('./utils/ExpressError.js');
 const methodOverride = require('method-override');
 //it allows us to implement different strategies for authentication
 const passport = require('passport');
@@ -56,7 +54,7 @@ app.use(
                 "'self'",
                 "blob:",
                 "data:",
-                "https://res.cloudinary.com/dbmh2z1rl/", //SHOULD MATCH YOUR CLOUDINARY ACCOUNT! 
+                `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/`, //SHOULD MATCH YOUR CLOUDINARY ACCOUNT! 
                 "https://images.unsplash.com/",
             ],
             fontSrc: ["'self'", ...fontSrcUrls],
@@ -77,7 +75,7 @@ const reviewRoutes = require('./routes/reviews');
 const flash = require('connect-flash');
 const { getMaxListeners } = require('events');
 
-const dbUrl = process.env.DB_URL
+const dbUrl = process.env.DB_URL || 'mongodb://127.0.0.1:27017/yelp-camp';
 
 // 'mongodb://localhost:27017/yelp-camp-maptiler'
 
@@ -112,7 +110,7 @@ const store = MongoStore.create({
     mongoUrl: dbUrl, 
     touchAfter: 24 * 60 * 60,
     crypto: {
-        secret: 'thisshouldbeabettersecret!'
+        secret: process.env.SECRET
     }
 });
 
@@ -123,12 +121,12 @@ store.on('error', function(e){
 const sessionConfig = {
     store,
     name: 'session',
-    secret : 'thisshouldbeabettersecret',
+    secret : process.env.SECRET,
     resave : false,
     saveUninitialized: true,
     cookie :{
         httpOnly: true,
-        //secure: true,
+        secure: process.env.NODE_ENV === 'production',
         expires: Date.now() + 1000 * 60 * 60 * 24 *7,
         maxAge: 1000 * 60 * 60 * 24 *7
     }
@@ -136,7 +134,6 @@ const sessionConfig = {
 
 app.use(session(sessionConfig));
 app.use(flash());
-app.use(helmet({contentSecurityPolicy : false}));
 //we need the passport uses fo the authentication sessions
 // use sessiong must be before passport.session
 app.use(passport.initialize());
@@ -183,7 +180,10 @@ app.use((err, req, res, next) => {
     res.status(statusCode).render('error', {err})
 })
 
-// app.listen(3000, ()=>{
-//     console.log('listening on port 3000')
-// })
+const port = process.env.PORT || 3000;
 
+app.listen(port, () => {
+    console.log(`Serving on port ${port}`);
+});
+
+module.exports = app;

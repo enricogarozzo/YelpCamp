@@ -9,7 +9,7 @@ const mongoose = require('mongoose');
 const ejsMate = require ('ejs-mate');
 const session = require('express-session');
 const sanitizeV5 = require('./utils/mongoSanitizeV5.js');
-const ExpressError = require('./utils/ExpressError');
+const ExpressError = require('./utils/ExpressError.js');
 const methodOverride = require('method-override');
 //it allows us to implement different strategies for authentication
 const passport = require('passport');
