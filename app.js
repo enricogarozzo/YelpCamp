@@ -19,6 +19,10 @@ const helmet = require('helmet');
 const { MongoStore } = require('connect-mongo');
 const app = express();
 
+if (process.env.NODE_ENV === 'production') {
+    app.set('trust proxy', 1);
+}
+
 
 
 
@@ -123,11 +127,11 @@ const sessionConfig = {
     name: 'session',
     secret : process.env.SECRET,
     resave : false,
-    saveUninitialized: true,
+    saveUninitialized: false,
     cookie :{
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', 
+        sameSite: 'lax', 
         expires: new Date(Date.now() + 1000 * 60 * 60 * 24 *7),
         maxAge: 1000 * 60 * 60 * 24 *7
     }
